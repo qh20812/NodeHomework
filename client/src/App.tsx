@@ -3,13 +3,23 @@ import Navbar from "./components/navbar";
 import Button from "./components/ui/button";
 import Loading from "./components/ui/loading";
 import { useEffect, useState } from "react";
+import { getFeaturedMenus, getHomeStats, type FeaturedMenu, type HomeStats } from "./api/home";
 
 function HomePage() {
   const [loading, setLoading] = useState(true);
+  const [featuredMenus, setFeaturedMenus] = useState<FeaturedMenu[]>([]);
+  const [stats, setStats] = useState<HomeStats | null>(null);
+
   useEffect(() => {
     const fetchHomePageData = async () => {
       try {
         setLoading(true);
+        const [menus, homeStats] = await Promise.all([
+          getFeaturedMenus(3),
+          getHomeStats(),
+        ]);
+        setFeaturedMenus(menus);
+        setStats(homeStats);
       } catch (error) {
         console.error("Error fetching homepage data:", error);
       } finally {
@@ -18,6 +28,13 @@ function HomePage() {
     };
     fetchHomePageData();
   }, []);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(amount);
+  };
 
   if (loading) {
     return <Loading />; 
@@ -96,9 +113,9 @@ function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             {/* Feature 1 */}
             <div className="bg-gradient-to-br from-primary-50 to-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-warning rounded-full flex items-center justify-center mb-6">
                 <svg
-                  className="w-8 h-8 text-primary-600"
+                  className="w-8 h-8 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -122,9 +139,9 @@ function HomePage() {
 
             {/* Feature 2 */}
             <div className="bg-gradient-to-br from-secondary-50 to-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-6">
                 <svg
-                  className="w-8 h-8 text-secondary-600"
+                  className="w-8 h-8 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -194,75 +211,107 @@ function HomePage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Sample Dish Cards */}
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group"
-              >
-                <div className="relative h-48 bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
-                  <svg
-                    className="w-24 h-24 text-primary-600 opacity-50"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                    />
-                  </svg>
-                  <div className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg">
+            {featuredMenus.length > 0 ? (
+              featuredMenus.map((menu) => (
+                <div
+                  key={menu._id}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    {menu.image ? (
+                      <img 
+                        src={menu.image} 
+                        alt={menu.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
+                        <svg
+                          className="w-24 h-24 text-primary-600 opacity-50"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-3 py-1 bg-secondary-100 text-secondary-600 text-sm font-medium rounded-full">
+                        {menu.category?.name || 'Món ăn'}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors line-clamp-1">
+                      {menu.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10">
+                      {menu.description || 'Món ăn ngon, được chế biến từ nguyên liệu tươi ngon.'}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-primary">
+                        {formatCurrency(menu.price)}
+                      </span>
+                      <Link to="/menu">
+                        <Button variant="primary" size="sm">
+                          Xem chi tiết
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              [1, 2, 3].map((item) => (
+                <div
+                  key={item}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group"
+                >
+                  <div className="relative h-48 bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
                     <svg
-                      className="w-5 h-5 text-red-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+                      className="w-24 h-24 text-primary-600 opacity-50"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
                       <path
-                        fillRule="evenodd"
-                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                        clipRule="evenodd"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                       />
                     </svg>
                   </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="px-3 py-1 bg-secondary-100 text-secondary-600 text-sm font-medium rounded-full">
-                      Món chính
-                    </span>
-                    <div className="flex items-center text-yellow-500">
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      <span className="ml-1 text-sm font-medium text-gray-700">
-                        4.5
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-3 py-1 bg-secondary-100 text-secondary-600 text-sm font-medium rounded-full">
+                        Món chính
                       </span>
                     </div>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
-                    Món {item}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Mô tả ngắn gọn về món ăn này, nguyên liệu và hương vị đặc
-                    trưng.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-primary-600">
-                      {(item * 50000).toLocaleString("vi-VN")}đ
-                    </span>
-                    <Button variant="primary" size="sm">
-                      Thêm vào giỏ
-                    </Button>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+                      Món {item}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4">
+                      Chưa có món ăn nào. Hãy thêm món ăn vào hệ thống.
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-primary-600">
+                        {formatCurrency(item * 50000)}
+                      </span>
+                      <Button variant="primary" size="sm">
+                        Thêm vào giỏ
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           <div className="mt-8 text-center md:hidden">

@@ -15,7 +15,7 @@ export interface DashboardStats {
   totalUsers: number;
   totalMenus: number;
   totalCategories: number;
-  totalOrders: number;
+  totalReviews: number;
 }
 
 export interface RecentUser {
@@ -62,18 +62,18 @@ export interface RecentMenu {
 
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   try {
-    const [usersRes, menusRes, categoriesRes, ordersRes] = await Promise.all([
+    const [usersRes, menusRes, categoriesRes, reviewsRes] = await Promise.all([
       axios.get(`${API_URL}/users`, getAuthHeaders()),
       axios.get(`${API_URL}/menu`, getAuthHeaders()),
       axios.get(`${API_URL}/category`, getAuthHeaders()),
-      axios.get(`${API_URL}/order`, getAuthHeaders()),
+      axios.get(`${API_URL}/review`, getAuthHeaders()),
     ]);
 
     return {
       totalUsers: usersRes.data.length,
       totalMenus: menusRes.data.length,
       totalCategories: categoriesRes.data.length,
-      totalOrders: ordersRes.data.length,
+      totalReviews: reviewsRes.data.length,
     };
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);

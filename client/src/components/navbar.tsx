@@ -71,9 +71,6 @@ function Navbar() {
             <Link to="/menu" className={getNavLinkClass('/menu')}>
               Thực đơn
             </Link>
-            <Link to="/category" className={getNavLinkClass('/category')}>
-              Danh mục
-            </Link>
             {user?.role === 'adm' && (
               <Link to="/admin" className={getNavLinkClass('/admin')}>
                 Quản lý
