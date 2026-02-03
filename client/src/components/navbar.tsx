@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { me, logout, getToken } from '../api/auth'
 import Button from './ui/button' 
 
@@ -13,9 +13,24 @@ interface User {
 
 function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  }
+
+  const getNavLinkClass = (path: string) => {
+    const baseClass = 'font-medium transition-colors';
+    return isActive(path)
+      ? `${baseClass} text-primary border-b-2 border-primary-600 pb-1`
+      : `${baseClass} text-gray-700 hover:text-primary-600`;
+  }
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -45,25 +60,22 @@ function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
             <span className="text-xl font-bold text-gray-900">K24WD-03</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+            <Link to="/" className={getNavLinkClass('/')}>
               Trang chủ
             </Link>
-            <Link to="/menu" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+            <Link to="/menu" className={getNavLinkClass('/menu')}>
               Thực đơn
             </Link>
-            <Link to="/category" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+            <Link to="/category" className={getNavLinkClass('/category')}>
               Danh mục
             </Link>
             {user?.role === 'adm' && (
-              <Link to="/admin" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+              <Link to="/admin" className={getNavLinkClass('/admin')}>
                 Quản lý
               </Link>
             )}
@@ -90,7 +102,7 @@ function Navbar() {
                     className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <div className="w-8 h-8 bg-secondary-100 rounded-full flex items-center justify-center">
-                      <span className="text-secondary-600 font-semibold">
+                      <span className="text-primary font-semibold">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -162,21 +174,33 @@ function Navbar() {
           <div className="px-4 py-3 space-y-3">
             <Link
               to="/"
-              className="block text-gray-700 hover:text-primary-600 font-medium"
+              className={`block font-medium transition-colors py-2 px-3 rounded-lg ${
+                isActive('/') 
+                  ? 'bg-primary-50 text-primary-600 font-semibold' 
+                  : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+              }`}
               onClick={() => setIsMenuOpen(false)}
             >
               Trang chủ
             </Link>
             <Link
               to="/menu"
-              className="block text-gray-700 hover:text-primary-600 font-medium"
+              className={`block font-medium transition-colors py-2 px-3 rounded-lg ${
+                isActive('/menu') 
+                  ? 'bg-primary-50 text-primary-600 font-semibold' 
+                  : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+              }`}
               onClick={() => setIsMenuOpen(false)}
             >
               Thực đơn
             </Link>
             <Link
               to="/category"
-              className="block text-gray-700 hover:text-primary-600 font-medium"
+              className={`block font-medium transition-colors py-2 px-3 rounded-lg ${
+                isActive('/category') 
+                  ? 'bg-primary-50 text-primary-600 font-semibold' 
+                  : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+              }`}
               onClick={() => setIsMenuOpen(false)}
             >
               Danh mục
@@ -184,7 +208,11 @@ function Navbar() {
             {user?.role === 'adm' && (
               <Link
                 to="/admin"
-                className="block text-gray-700 hover:text-primary-600 font-medium"
+                className={`block font-medium transition-colors py-2 px-3 rounded-lg ${
+                  isActive('/admin') 
+                    ? 'bg-primary-50 text-primary-600 font-semibold' 
+                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Quản lý

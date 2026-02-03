@@ -1,8 +1,27 @@
 import { Link } from "react-router-dom";
 import Navbar from "./components/navbar";
 import Button from "./components/ui/button";
+import Loading from "./components/ui/loading";
+import { useEffect, useState } from "react";
 
 function HomePage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchHomePageData = async () => {
+      try {
+        setLoading(true);
+      } catch (error) {
+        console.error("Error fetching homepage data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHomePageData();
+  }, []);
+
+  if (loading) {
+    return <Loading />; 
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -34,7 +53,7 @@ function HomePage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto text-primary"
                   >
                     Đăng ký ngay
                   </Button>
